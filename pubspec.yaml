@@ -1,11 +1,7 @@
 name: pet_care
 description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-
+publish_to: 'none'
 version: 1.0.0+1
-
 environment:
   sdk: ^3.5.1
 
@@ -14,7 +10,7 @@ dependencies:
     sdk: flutter
   http: ^0.13.4
   cupertino_icons: ^1.0.8
-  table_calendar: ^3.0.0  # Corregido: sin espacios extra
+  table_calendar: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -23,3 +19,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+

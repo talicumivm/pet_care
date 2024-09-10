@@ -50,7 +50,7 @@ class PetList extends StatelessWidget {
     return Card(
       margin: EdgeInsets.all(10),
       child: ListTile(
-        leading: Image.asset(pet.imagePath),
+        leading: Icon(Icons.pets, size: 50), // Reemplaza la imagen con un ícono por ahora
         title: Text(pet.name, style: TextStyle(fontSize: 20)),
         subtitle: Text(pet.type),
         onTap: () {

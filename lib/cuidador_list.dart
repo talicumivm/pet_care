@@ -1,26 +1,27 @@
-// lib/screens/pet_list.dart
+// lib/screens/cuidador_list.dart
 import 'package:flutter/material.dart';
-import '../models/cuidador.dart';
-import 'cuidador_profile.dart'; // Asegúrate que esta ruta esté bien
+import 'package:pet_care/cuidador_profile.dart';
+import '../models/cuidador.dart'; 
+import 'package:pet_care/cuidador_profile.dart'; 
 
 class CuidadorList extends StatelessWidget {
   // Lista de cuidadores
   final List<Cuidador> cuidadores = [
     Cuidador(
       name: "Rocky",
-      imagePath: "assets/husky.png",
+      imagePath: "assets/imagenes/cuidador-de-perros.png",
       type: "human",
       servicios: "Only Fans",
     ),
     Cuidador(
       name: "Bella",
-      imagePath: "assets/cat.png",
+      imagePath: "assets/imagenes/cuidador-de-perros.png",
       type: "human",
       servicios: "Maraqueando",
     ),
     Cuidador(
       name: "Blanquito",
-      imagePath: "assets/rabbit.png",
+      imagePath: "assets/imagenes/cuidador-de-perros.png",
       type: "human",
       servicios: "bañador",
     ),

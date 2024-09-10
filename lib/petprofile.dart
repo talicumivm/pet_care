@@ -21,8 +21,9 @@ class PetProfile extends StatelessWidget {
           children: [
             Center(
               child: CircleAvatar(
-                backgroundImage: AssetImage(pet.imagePath),
+                backgroundColor: Colors.grey[200], // Fondo gris claro en lugar de imagen
                 radius: 100,
+                child: Icon(Icons.pets, size: 100, color: Colors.black), // Reemplaza la imagen con un ícono por ahora
               ),
             ),
             SizedBox(height: 20),

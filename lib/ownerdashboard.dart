@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'cuidador_list.dart';
+import 'cuidador_list.dart'; // Importa la pantalla de la lista de cuidadores
 
 class OwnerDashboard extends StatelessWidget {
   @override
@@ -58,8 +58,15 @@ class OwnerDashboard extends StatelessWidget {
         title: Text(serviceName, style: TextStyle(fontSize: 20)),
         subtitle: Text(description),
         onTap: () {
-          // Acción para cada servicio (reservar o seleccionar)
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Servicio de $serviceName seleccionado.')));
+          // Verifica qué servicio se ha seleccionado y navega a la pantalla correspondiente
+          if (serviceName == "Cuidado de mascotas") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CuidadorList()),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Servicio de $serviceName seleccionado.')));
+          }
         },
       ),
     );
