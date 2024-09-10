@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter App',
+      title: 'PetCare',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -32,6 +32,9 @@ class MyApp extends StatelessWidget {
         '/caretaker': (context) => CaretakerDashboard(),
         '/trainer': (context) => TrainerDashboard(),
         '/admin': (context) => AdminDashboard(),
+        //'/notifications': (context) => NotificationsPage(),
+        //'/serviceHistory': (context) => ServiceHistoryPage(),
+        //'/chat': (context) => ChatPage(service: '')
       },
     );
   }

@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
       home: TrainerDashboard(),
     );
   }
-} canelon hijo d epya
+}
 
 class TrainerDashboard extends StatelessWidget {
   @override
