@@ -1,32 +1,28 @@
 // lib/screens/pet_list.dart
 import 'package:flutter/material.dart';
-import 'package:pet_care/cuidador_profile.dart';
-import '../models/cuidador.dart'; 
-import 'cuidador_profile.dart'; 
+import '../models/cuidador.dart';
+import 'cuidador_profile.dart'; // Asegúrate que esta ruta esté bien
 
-class cuidadorList extends StatelessWidget {
-  // Lista de mascotas
-  final List<Cuidador> cuidador = [
+class CuidadorList extends StatelessWidget {
+  // Lista de cuidadores
+  final List<Cuidador> cuidadores = [
     Cuidador(
       name: "Rocky",
       imagePath: "assets/husky.png",
       type: "human",
       servicios: "Only Fans",
-    
     ),
     Cuidador(
       name: "Bella",
       imagePath: "assets/cat.png",
       type: "human",
       servicios: "Maraqueando",
-   
     ),
     Cuidador(
       name: "Blanquito",
       imagePath: "assets/rabbit.png",
       type: "human",
       servicios: "bañador",
-     
     ),
   ];
 
@@ -38,16 +34,16 @@ class cuidadorList extends StatelessWidget {
         backgroundColor: Colors.blueAccent,
       ),
       body: ListView.builder(
-        itemCount: cuidador.length,
+        itemCount: cuidadores.length,
         itemBuilder: (context, index) {
-          final cuidador = cuidador[index];
-          return _buildcuidadorCard(context, cuidador);
+          final cuidador = cuidadores[index];
+          return _buildCuidadorCard(context, cuidador);
         },
       ),
     );
   }
 
-  Widget _buildcuidadorCard(BuildContext context, Cuidador cuidador) {
+  Widget _buildCuidadorCard(BuildContext context, Cuidador cuidador) {
     return Card(
       margin: EdgeInsets.all(10),
       child: ListTile(
