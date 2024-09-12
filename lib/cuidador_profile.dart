@@ -1,4 +1,3 @@
-// lib/screens/cuidador_profile.dart
 import 'package:flutter/material.dart';
 import '../models/cuidador.dart';
 
@@ -31,6 +30,17 @@ class CuidadorProfile extends StatelessWidget {
             Text('Tipo: ${cuidador.type}', style: TextStyle(fontSize: 18)),
             SizedBox(height: 10),
             Text('Servicios: ${cuidador.servicios}', style: TextStyle(fontSize: 18)),
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(Icons.star, color: Colors.yellow, size: 24),
+                SizedBox(width: 5),
+                Text(
+                  '${cuidador.rating}',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ],
+            ),
           ],
         ),
       ),
