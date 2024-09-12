@@ -19,8 +19,7 @@ class AdminDashboard extends StatelessWidget {
           _buildAdminOption(context, Icons.people, "Usuarios", UserList()), // Pantalla de usuarios
           _buildAdminOption(context, Icons.report, "Reportes", ReportList()), // Pantalla de reportes
           _buildAdminOption(context, Icons.calendar_today, "Creacion de Cuenta ", PetList()), // Pantalla de mascotas
-          _buildAdminOption(context, Icons.add_circle_outline, "Creacion de Reserva", UserList()), // Pantalla de usuarios
-          _buildAdminOption(context, Icons.favorite, "Creacion De Mascota", ReportList()), 
+
         ],
       ),
     );

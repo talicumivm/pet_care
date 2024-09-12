@@ -1,11 +1,12 @@
-// lib/screens/veterinarian_dashboard.dart
 import 'package:flutter/material.dart';
-import 'petlist.dart'; 
-import 'models/pet.dart'; 
-import 'petprofile.dart'; 
+import 'petlist.dart';
+import 'models/pet.dart';
+import 'petprofile.dart';
 import 'historial_screen.dart';
 import 'visitas_screen.dart';
 import 'salud_screen.dart';
+import 'appointments_screen.dart'; // Pantalla para citas agendadas
+import 'digital_prescriptions_screen.dart'; // Pantalla para recetas digitales
 
 class VeterinarianDashboard extends StatelessWidget {
   @override
@@ -45,9 +46,10 @@ class VeterinarianDashboard extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               children: [
-                _buildVetOption(context, Icons.medical_services, "Visitas", VisitasScreen()),
-                _buildVetOption(context, Icons.health_and_safety, "Salud", SaludScreen()),
+                _buildVetOption(context, Icons.calendar_today, "Citas", AppointmentsScreen()),
                 _buildVetOption(context, Icons.history, "Historial", HistorialScreen()),
+                _buildVetOption(context, Icons.medical_services, "Recetas", DigitalPrescriptionsScreen()),
+                _buildVetOption(context, Icons.health_and_safety, "Salud", SaludScreen()),
               ],
             ),
           ),
