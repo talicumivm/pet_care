@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Modelo de actividad de mascota
 class PetActivity {
   String name;
   String status;
@@ -18,7 +17,6 @@ class CaretakerDashboard extends StatefulWidget {
 }
 
 class _CaretakerDashboardState extends State<CaretakerDashboard> {
-  // Lista de actividades para las mascotas
   List<PetActivity> activities = [
     PetActivity(name: "Alimentación"),
     PetActivity(name: "Ejercicio"),
@@ -70,13 +68,48 @@ class _CaretakerDashboardState extends State<CaretakerDashboard> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Acción para agregar nueva actividad
-          setState(() {
-            activities.add(PetActivity(name: "Nueva Actividad"));
-          });
+          _showAddActivityDialog(context);
         },
         child: Icon(Icons.add),
       ),
+    );
+  }
+
+  void _showAddActivityDialog(BuildContext context) {
+    String newActivityName = '';
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Agregar nueva actividad"),
+          content: TextField(
+            decoration: InputDecoration(hintText: "Nombre de la actividad"),
+            onChanged: (value) {
+              newActivityName = value;
+            },
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                if (newActivityName.isNotEmpty) {
+                  setState(() {
+                    activities.add(PetActivity(name: newActivityName));
+                  });
+                }
+                Navigator.of(context).pop();
+              },
+              child: Text("Agregar"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Cancelar"),
+            ),
+          ],
+        );
+      },
     );
   }
 

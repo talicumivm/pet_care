@@ -1,51 +1,116 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
+class TrainerDashboard extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Trainer Dashboard',
-      home: TrainerDashboard(),
-    );
-  }
+  _TrainerDashboardState createState() => _TrainerDashboardState();
 }
 
-class TrainerDashboard extends StatelessWidget {
+class _TrainerDashboardState extends State<TrainerDashboard> {
+  DateTime _selectedDate = DateTime.now();
+  String _trainerDetails = '';
+  late Map<DateTime, List<String>> _events;
+
+  @override
+  void initState() {
+    super.initState();
+    _events = {
+      DateTime.now().add(Duration(days: 1)): ['Sesión de entrenamiento con el Sr. Luis Gómez'],
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Panel Entrenador"),
-        backgroundColor: Colors.greenAccent,
+        title: Text("Panel de Entrenador"),
+        backgroundColor: Colors.lightBlue,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-            Text(
-              "Progreso de Entrenamiento",
-              style: Theme.of(context).textTheme.headlineSmall,
+      body: ListView(
+        padding: EdgeInsets.all(16),
+        children: [
+          SizedBox(height: 20),
+          Text("Calendario de Entrenamientos", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Container(
+            height: 400, // Ajusta la altura según tus necesidades
+            child: _buildCalendar(),
+          ),
+          SizedBox(height: 20),
+          Text("Detalles del entrenamiento", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Text(_trainerDetails, style: TextStyle(fontSize: 16)),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showAddSessionDialog();
+        },
+        child: Icon(Icons.add),
+        backgroundColor: Colors.lightBlue,
+      ),
+    );
+  }
+
+  Widget _buildCalendar() {
+    return TableCalendar(
+      focusedDay: _selectedDate,
+      firstDay: DateTime.utc(2020, 1, 1),
+      lastDay: DateTime.utc(2030, 12, 31),
+      selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
+      onDaySelected: (selectedDay, focusedDay) {
+        setState(() {
+          _selectedDate = selectedDay;
+          _trainerDetails = _events[_selectedDate]?.join('\n') ?? 'No hay sesiones para esta fecha';
+        });
+      },
+      eventLoader: (day) {
+        return _events[day] ?? [];
+      },
+    );
+  }
+
+  void _showAddSessionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Agregar Sesión de Entrenamiento"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  decoration: InputDecoration(labelText: "Nombre del Entrenador"),
+                ),
+                TextField(
+                  decoration: InputDecoration(labelText: "Tipo de Entrenamiento"),
+                ),
+                // Aquí puedes agregar más campos según sea necesario
+              ],
             ),
-            ListTile(
-              leading: Icon(Icons.check_circle),
-              title: Text(" Sentado"),
-              subtitle: Text("Progreso: 90%"),
-              trailing: Icon(Icons.arrow_forward), // Agregué un trailing para evitar errores
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  if (_events[_selectedDate] == null) {
+                    _events[_selectedDate] = [];
+                  }
+                  _events[_selectedDate]!.add('Sesión con el Sr. Luis Gómez');
+                  _trainerDetails = "Entrenador: Sr. Luis Gómez\nFecha: ${_selectedDate.toLocal()}";
+                });
+                Navigator.pop(context);
+              },
+              child: Text("Guardar"),
             ),
-            ListTile(
-              leading: Icon(Icons.check_circle),
-              title: Text("Comando: Quieto"),
-              subtitle: Text("Progreso: 80%"),
-              trailing: Icon(Icons.arrow_forward), // Agregué un trailing para evitar errores
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancelar"),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
