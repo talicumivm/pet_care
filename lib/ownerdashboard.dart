@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'cuidador_list.dart'; // Asegúrate de que este archivo exista y contenga la pantalla de cuidadores
+import 'add_appointment_dialog.dart'; // Importar el diálogo para agregar citas
+import 'package:intl/intl.dart'; // Para formatear la fecha y la hora
+import 'cuidador_list.dart';
 
 class OwnerDashboard extends StatefulWidget {
   @override
@@ -9,7 +11,6 @@ class OwnerDashboard extends StatefulWidget {
 
 class _OwnerDashboardState extends State<OwnerDashboard> {
   DateTime _selectedDate = DateTime.now();
-  String _selectedSpecialistType = '';
   String _specialistDetails = '';
   late Map<DateTime, List<String>> _events;
 
@@ -17,7 +18,8 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   void initState() {
     super.initState();
     _events = {
-      DateTime.now().add(Duration(days: 1)): ['Cita con el Dr. Juan Pérez'],
+      DateTime.now().add(Duration(days: 1)): ['Cita con el Dr. Juan Pérez a las 10:00 AM'],
+      DateTime.now().add(Duration(days: 2)): ['Entrenamiento con Pedro a las 14:00 PM'],
     };
   }
 
@@ -27,27 +29,17 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
       appBar: AppBar(
         title: Text("Dueño de Mascotas"),
         backgroundColor: Colors.lightGreen,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.calendar_today),
-            onPressed: () {
-              // Acción para el botón de calendario (opcional)
-            },
-          ),
-        ],
       ),
       body: ListView(
         padding: EdgeInsets.all(16),
         children: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.lightGreen, // Color verde para el botón
+              backgroundColor: Colors.lightGreen,
               padding: EdgeInsets.symmetric(vertical: 16),
               textStyle: TextStyle(fontSize: 16),
             ),
-            onPressed: () {
-              _showAddPetDialog();
-            },
+            onPressed: _showAddPetDialog,
             child: Text("Agregar Mascota"),
           ),
           SizedBox(height: 20),
@@ -57,18 +49,21 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           _buildServiceCard(context, "Entrenamiento", Icons.directions_run, "Reservar servicio de entrenamiento"),
           _buildServiceCard(context, "Paseo", Icons.directions_walk, "Reservar servicio de paseo"),
           _buildServiceCard(context, "Veterinario", Icons.local_hospital, "Seleccionar veterinario"),
-          
           SizedBox(height: 30),
           Text("Calendario", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           Container(
-            height: 400, // Ajusta la altura según tus necesidades
+            height: 400,
             child: _buildCalendar(),
           ),
-          
           SizedBox(height: 20),
           Text("Detalles de la cita", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           Text(_specialistDetails, style: TextStyle(fontSize: 16)),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addNewAppointment,  // Lógica para añadir citas
+        child: Icon(Icons.add),
+        backgroundColor: Colors.lightGreen,
       ),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.lightGreen,
@@ -108,99 +103,16 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           MaterialPageRoute(builder: (context) => CuidadorList(serviceType: serviceName)),
         );
         break;
-     
-        break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Servicio de $serviceName seleccionado.')));
     }
   }
 
-  void _showVetSelectionDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Seleccionar Veterinario"),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildVetOption("Dr. Juan Pérez", "Veterinario General", () {
-                  Navigator.pop(context);
-                  _showCalendar("Veterinario", "Dr. Juan Pérez");
-                }),
-                _buildVetOption("Dra. Ana López", "Especialista en Caninos", () {
-                  Navigator.pop(context);
-                  _showCalendar("Veterinario", "Dra. Ana López");
-                }),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildVetOption(String name, String specialty, VoidCallback onTap) {
-    return ListTile(
-      title: Text(name),
-      subtitle: Text(specialty),
-      onTap: onTap,
-    );
-  }
-
-  void _showCalendar(String type, String specialist) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Seleccionar Fecha y Hora"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 300, // Ajusta la altura según tus necesidades
-                child: TableCalendar(
-                  focusedDay: _selectedDate,
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
-                  selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDate = selectedDay;
-                      _specialistDetails = "Especialista: $specialist\nFecha: ${_selectedDate.toLocal()}";
-                    });
-                  },
-                  eventLoader: (day) {
-                    return _events[day] ?? [];
-                  },
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    if (_events[_selectedDate] == null) {
-                      _events[_selectedDate] = [];
-                    }
-                    _events[_selectedDate]!.add('Cita con $specialist');
-                    _specialistDetails = "Especialista: $specialist\nFecha: ${_selectedDate.toLocal()}";
-                  });
-                  Navigator.pop(context);
-                },
-                child: Text("Guardar Cita"),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildCalendar() {
     return TableCalendar(
-      focusedDay: _selectedDate,
       firstDay: DateTime.utc(2020, 1, 1),
       lastDay: DateTime.utc(2030, 12, 31),
+      focusedDay: _selectedDate,
       selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
       onDaySelected: (selectedDay, focusedDay) {
         setState(() {
@@ -212,6 +124,27 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
         return _events[day] ?? [];
       },
     );
+  }
+
+  // Lógica para agregar una nueva cita
+  Future<void> _addNewAppointment() async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => AddAppointmentDialog(selectedDay: _selectedDate),
+    );
+
+    if (result != null && result.containsKey('title')) {
+      setState(() {
+        if (_events[_selectedDate] == null) {
+          _events[_selectedDate] = [];
+        }
+        // Formatear la fecha y hora para mostrarla
+        String formattedDateTime = DateFormat('yyyy-MM-dd – kk:mm').format(result['datetime']);
+        // Agregar la nueva cita con fecha y hora
+        _events[_selectedDate]!.add('${result['title']} - ${result['description']} a las $formattedDateTime');
+        _specialistDetails = _events[_selectedDate]!.join('\n'); // Actualizar los detalles de la cita
+      });
+    }
   }
 
   void _showAddPetDialog() {
@@ -244,14 +177,13 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                   }).toList(),
                   onChanged: (_) {},
                 ),
-                // Agrega aquí más campos según sea necesario
               ],
             ),
           ),
           actions: [
             ElevatedButton(
               onPressed: () {
-                // Guarda la información de la mascota
+                // Lógica para guardar la información de la mascota
                 Navigator.pop(context);
               },
               child: Text("Guardar"),

@@ -3,6 +3,7 @@ import 'petlist.dart';
 import 'models/pet.dart';
 import 'petprofile.dart';
 import 'historial_screen.dart';
+import 'base.dart';
 import 'visitas_screen.dart';
 import 'salud_screen.dart';
 import 'appointments_screen.dart'; // Pantalla para citas agendadas
@@ -96,7 +97,7 @@ class VeterinarianDashboard extends StatelessWidget {
       ),
     );
   }
-
+  
   Widget _buildVetOption(BuildContext context, IconData icon, String label, Widget page) {
     return GestureDetector(
       onTap: () {

@@ -1,48 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'booking_details_page.dart';
+import 'booking_details_page.dart'; // Página para ver detalles de una cita
+import 'models/Appointment.dart'; // Clase Appointment
 
 class CalendarPage extends StatefulWidget {
+  final String title;       // Título de la página (personalizable)
+  final Color color;        // Color de la barra superior (personalizable)
+  final Map<DateTime, List<Appointment>> appointments;  // Citas por fecha
+
+  CalendarPage({required this.title, required this.color, required this.appointments});
+
   @override
   _CalendarPageState createState() => _CalendarPageState();
 }
 
 class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
+  DateTime _focusedDay = DateTime.now();   // Día focalizado en el calendario
+  DateTime? _selectedDay;                  // Día seleccionado en el calendario
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Calendario de Reservas"),
+        title: Text(widget.title),
+        backgroundColor: widget.color,  // Personalización del color de la barra
       ),
-      body: TableCalendar(
-        firstDay: DateTime.utc(2023, 1, 1),
-        lastDay: DateTime.utc(2025, 12, 31),
-        focusedDay: _focusedDay,
-        selectedDayPredicate: (day) {
-          return isSameDay(_selectedDay, day);
-        },
-        onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            _selectedDay = selectedDay;
-            _focusedDay = focusedDay;
-          });
+      body: Column(
+        children: [
+          TableCalendar(
+            firstDay: DateTime.utc(2023, 1, 1),
+            lastDay: DateTime.utc(2025, 12, 31),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay, day);  // Comprueba si el día seleccionado es el mismo
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;  // Actualiza el día seleccionado
+                _focusedDay = focusedDay;    // Cambia el día focalizado
+              });
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => BookingDetailsPage(selectedDay: selectedDay)),
-          );
-        },
-        calendarFormat: _calendarFormat,
-        onFormatChanged: (format) {
-          setState(() {
-            _calendarFormat = format;
-          });
-        },
+              // Navegar a BookingDetailsPage cuando se selecciona un día
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BookingDetailsPage(selectedDay: selectedDay),
+                ),
+              );
+            },
+            calendarFormat: _calendarFormat,
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;  // Cambia el formato del calendario (mes, semana, etc.)
+              });
+            },
+            eventLoader: (day) {
+              // Cargar las citas del día seleccionado
+              return widget.appointments[day] ?? [];
+            },
+          ),
+          const SizedBox(height: 8.0),
+          Expanded(
+            child: _buildAppointmentList(),  // Mostrar la lista de citas
+          ),
+        ],
       ),
+    );
+  }
+
+  // Función para construir la lista de citas para el día seleccionado
+  Widget _buildAppointmentList() {
+    if (_selectedDay == null || widget.appointments[_selectedDay!] == null) {
+      return Center(
+        child: Text('No hay citas para este día'),  // Si no hay citas, mostrar un mensaje
+      );
+    }
+
+    // Mostrar la lista de citas para el día seleccionado
+    final appointmentsForSelectedDay = widget.appointments[_selectedDay!]!;
+    return ListView.builder(
+      itemCount: appointmentsForSelectedDay.length,
+      itemBuilder: (context, index) {
+        final appointment = appointmentsForSelectedDay[index];
+        return ListTile(
+          title: Text(appointment.title),
+          subtitle: Text(appointment.description),
+          onTap: () {
+            // Al hacer clic en una cita, abrir los detalles de la cita
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BookingDetailsPage(selectedDay: appointment.time),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

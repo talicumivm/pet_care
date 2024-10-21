@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (email.isNotEmpty && password.isNotEmpty) {
       // Realiza la petición GET al backend
-      final url = Uri.parse('http://127.0.0.1:5000/users'); // Reemplaza con tu URL de backend
+      final url = Uri.parse('http://127.0.0.1:8000/users'); // Reemplaza con tu URL de backend
       final response = await http.get(url);
       
 
@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
         // Busca si existe un usuario con las credenciales proporcionadas
         
         final matchingUser = users.firstWhere(
-          (user) => user['correo'] == email && user['password'] == password,
+          (user) => user['correo'] == email ,
           orElse: () => null,
         );
                //&& user['password'] == password
