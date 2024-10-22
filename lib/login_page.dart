@@ -17,13 +17,14 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    print('Ejecutando initState'); 
     _checkConnection();  // Chequea la conexión al cargar la pantalla
     _fetchUsers();  // Obtiene los usuarios desde el backend
   }
 
   // Función para verificar la conexión con el servidor
   Future<void> _checkConnection() async {
-    final url = Uri.parse('http://127.0.0.1:8000/api/test');
+    final url = Uri.parse('http://127.0.0.1:8000/api/users');
     try {
       final response = await http.get(url);
 
@@ -49,13 +50,16 @@ class _LoginPageState extends State<LoginPage> {
     final url = Uri.parse('http://127.0.0.1:8000/api/users');
     try {
       final response = await http.get(url);
+      
+      print('Response status code: ${response.statusCode}');  // Verifica el código de estado
+      print('Response body: ${response.body}');  // Muestra el cuerpo de la respuesta
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
           _users = data['users'];  // Almacenar la lista de usuarios
         });
-        print('Usuarios obtenidos: $_users');  // Imprime la lista de usuarios en la terminal
+        print('Usuarios obtenidos: $_users');  // Imprime la lista de usuarios
       } else {
         print('Error al obtener los usuarios: ${response.statusCode}');
       }
@@ -63,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
       print('Error de conexión: $e');
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -122,10 +127,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Función de login que valida solo el correo
+  // Función de login que valida el correo y redirige según el tipo de usuario
   Future<void> _login() async {
     final email = _emailController.text;
-    // final password = _passwordController.text; // Comentamos la contraseña por ahora
 
     if (email.isNotEmpty) {
       // Verifica si existe un usuario con el correo ingresado
@@ -135,25 +139,24 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (matchingUser != null) {
-        // Si el correo existe, redirige a la pantalla principal
-        print('Inicio de sesión exitoso: ${matchingUser['name']} (${matchingUser['email']})');
-        Navigator.pushReplacementNamed(context, '/veterinarian');  // Redirige a la pantalla principal
+        // Si el correo existe, verifica el rol del usuario y redirige
+        String role = matchingUser['role'];  // O el campo que utilices para el tipo de usuario
 
-        /*
-        // Si deseas verificar la contraseña, puedes descomentar esta sección más adelante
-        if (matchingUser['password'] == password) {
-          // Credenciales válidas
-          print('Inicio de sesión exitoso: ${matchingUser['name']} (${matchingUser['email']})');
-          Navigator.pushReplacementNamed(context, '/veterinarian');  // Redirige a la pantalla principal
+        print('Inicio de sesión exitoso: ${matchingUser['name']} (${matchingUser['email']})');
+
+        // Redirige según el rol del usuario
+        if (role == 'veterinarian') {
+          Navigator.pushReplacementNamed(context, '/veterinarian');
+        } else if (role == 'cuidador') {
+          Navigator.pushReplacementNamed(context, '/cuidador');
+        } else if (role == 'dueño') {
+          Navigator.pushReplacementNamed(context, '/owner');
         } else {
-          // Contraseña incorrecta
-          print('Contraseña incorrecta');
+          print('Rol desconocido: $role');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Contraseña incorrecta')),
+            SnackBar(content: Text('Rol desconocido')),
           );
         }
-        */
-
       } else {
         // Correo no encontrado
         print('Correo no encontrado');
