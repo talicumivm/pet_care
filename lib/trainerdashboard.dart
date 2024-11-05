@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class TrainerDashboard extends StatefulWidget {
   @override
@@ -10,6 +11,8 @@ class _TrainerDashboardState extends State<TrainerDashboard> {
   DateTime _selectedDate = DateTime.now();
   String _trainerDetails = '';
   late Map<DateTime, List<String>> _events;
+  late GoogleMapController _mapController;
+  static const LatLng _center = LatLng(-33.4489, -70.6693); // Ubicación predeterminada
 
   @override
   void initState() {
@@ -32,12 +35,26 @@ class _TrainerDashboardState extends State<TrainerDashboard> {
           SizedBox(height: 20),
           Text("Calendario de Entrenamientos", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           Container(
-            height: 400, // Ajusta la altura según tus necesidades
+            height: 400,
             child: _buildCalendar(),
           ),
           SizedBox(height: 20),
           Text("Detalles del entrenamiento", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           Text(_trainerDetails, style: TextStyle(fontSize: 16)),
+          SizedBox(height: 20),
+          Text("Ubicación del Entrenamiento", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Container(
+            height: 300,
+            child: GoogleMap(
+              onMapCreated: (controller) {
+                _mapController = controller;
+              },
+              initialCameraPosition: CameraPosition(
+                target: _center,
+                zoom: 14.0,
+              ),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -84,7 +101,6 @@ class _TrainerDashboardState extends State<TrainerDashboard> {
                 TextField(
                   decoration: InputDecoration(labelText: "Tipo de Entrenamiento"),
                 ),
-                // Aquí puedes agregar más campos según sea necesario
               ],
             ),
           ),

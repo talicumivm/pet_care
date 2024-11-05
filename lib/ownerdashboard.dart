@@ -98,10 +98,10 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
       case "Entrenamiento":
       case "Paseo":
       case "Veterinario":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CuidadorList(serviceType: serviceName)),
-        );
+       Navigator.push(
+        context,
+         MaterialPageRoute(builder: (context) => CuidadorList()),
+         );
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Servicio de $serviceName seleccionado.')));

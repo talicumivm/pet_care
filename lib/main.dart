@@ -8,6 +8,7 @@ import 'walkerdashboard.dart';
 import 'caretakerdashboard.dart';
 import 'trainerdashboard.dart';
 import 'admindashboard.dart';
+import 'map_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -32,10 +33,9 @@ class MyApp extends StatelessWidget {
         '/caretaker': (context) => CaretakerDashboard(),
         '/trainer': (context) => TrainerDashboard(),
         '/admin': (context) => AdminDashboard(),
+        '/map': (context) => MapScreen(),
         
-        //'/notifications': (context) => NotificationsPage(),
-        //'/serviceHistory': (context) => ServiceHistoryPage(),
-        //'/chat': (context) => ChatPage(service: '')
+
       },
     );
   }

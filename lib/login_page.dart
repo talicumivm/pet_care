@@ -71,7 +71,9 @@ class _LoginPageState extends State<LoginPage> {
         title: Text('Inicio de Sesión'),
       ),
       body: Padding(
+        
         padding: const EdgeInsets.all(16.0),
+        
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
