@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'add_appointment_dialog.dart';
 import 'cuidador_list.dart';
 import 'package:http/http.dart' as http;
+import 'horario_screen.dart';
+
 
 class OwnerDashboard extends StatefulWidget {
   @override
@@ -36,16 +38,16 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
       if (response.statusCode == 200) {
         // Decodificar la respuesta JSON
         final Map<String, dynamic> json = jsonDecode(response.body);
-        print('Respuesta completa de la API: $json'); // Imprime toda la respuesta JSON para depuración
+        print('Respuesta completa de la API: $json');
 
         // Asegurarse de que el campo 'servicios' sea una lista
         if (json.containsKey('servicios') && json['servicios'] is List) {
           final List<dynamic> data = json['servicios'];
-          print('Servicios obtenidos: $data'); // Imprimir la lista de servicios
+          print('Servicios obtenidos: $data');
 
           setState(() {
-            // Guardar servicios en la lista y crear eventos
-            _servicios = data; // Guardamos los servicios en el estado
+            // Guardar servicios en la lista
+            _servicios = data;
             _events = {
               for (var servicio in data)
                 DateTime.parse(servicio['created_at']): [servicio['descripcion']]
@@ -100,7 +102,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addNewAppointment,  // Lógica para añadir citas
+        onPressed: _addNewAppointment,
         child: Icon(Icons.add),
         backgroundColor: Colors.lightGreen,
       ),
@@ -117,44 +119,83 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     );
   }
 
-  // Construye una lista de tarjetas de servicios
-  Widget _buildServicesList() {
-    if (_servicios.isEmpty) {
-      return Center(child: Text("Cargando servicios..."));  // Mostrar mensaje mientras se cargan los servicios
-    }
+// Método para construir la lista de servicios
+Widget _buildServicesList() {
+  if (_servicios.isEmpty) {
+    return Center(child: Text("Cargando servicios..."));
+  }
 
-    return Column(
-      children: _servicios.map((servicio) {
-        return Card(
-          margin: EdgeInsets.symmetric(vertical: 10),
-          child: ListTile(
-            leading: Icon(Icons.pets, size: 40, color: Colors.lightGreen),
-            title: Text(servicio['tipo_de_servicio'], style: TextStyle(fontSize: 20)),
-            subtitle: Text("Precio: \$${servicio['precio']}\nDescripción: ${servicio['descripcion']}"),
-            onTap: () {
-              _selectService(context, servicio['tipo_de_servicio']);
-            },
-          ),
-        );
-      }).toList(),
+  return Column(
+    children: _servicios.map((servicio) {
+      return Card(
+        margin: EdgeInsets.symmetric(vertical: 10),
+        child: ListTile(
+          leading: Icon(Icons.pets, size: 40, color: Colors.lightGreen),
+          title: Text(servicio['tipo_de_servicio'], style: TextStyle(fontSize: 20)),
+          subtitle: Text("Precio: \$${servicio['precio']}\nDescripción: ${servicio['descripcion']}"),
+trailing: ElevatedButton(
+  onPressed: () {
+    // Navegar a la pantalla de selección de horarios con el callback onHorarioSeleccionado
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HorarioScreen(
+          servicio: servicio,
+          onHorarioSeleccionado: (horario) {
+            // Al seleccionar un horario, se crea una nueva cita
+            setState(() {
+              DateTime selectedDate = DateTime.parse(horario.split(" ")[0]); // Extrae la fecha del horario
+
+              // Si no hay citas para la fecha seleccionada, se inicializa la lista
+              if (_events[selectedDate] == null) {
+                _events[selectedDate] = [];
+              }
+              
+              // Agrega el horario seleccionado a la lista de eventos de esa fecha
+              _events[selectedDate]!.add('${servicio['tipo_de_servicio']} - ${servicio['descripcion']} a las ${horario.split(" ")[1]}');
+              
+              // Actualiza los detalles de la cita para la fecha seleccionada
+              _specialistDetails = _events[_selectedDate]?.join('\n') ?? 'No hay citas para esta fecha';
+            });
+
+            // Mostrar mensaje de confirmación
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Cita creada para el ${horario}'))
+            );
+          },
+        ),
+      ),
     );
-  }
+  },
+  child: Text("Reservar"),
+),
 
-  void _selectService(BuildContext context, String serviceName) {
-    switch (serviceName) {
-      case "Cuidado de mascotas":
-      case "Entrenamiento":
-      case "Paseo":
-      case "Veterinario":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CuidadorList()),
-        );
-        break;
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Servicio de $serviceName seleccionado.')));
-    }
+
+        ),
+      );
+    }).toList(),
+  );
+}
+
+
+void _selectService(BuildContext context, dynamic servicio) {
+  List<dynamic> serviciosFiltrados = _servicios.where((s) => s['tipo_de_servicio'] == "cuidar").toList();
+  
+  if (servicio['tipo_de_servicio'] == "Cuidado de mascotas") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CuidadorList(
+          servicios: serviciosFiltrados,
+          servicioTipo: servicio['tipo_de_servicio'],
+        ),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Servicio de ${servicio['tipo_de_servicio']} seleccionado.')));
   }
+}
+
 
   Widget _buildCalendar() {
     return TableCalendar(
