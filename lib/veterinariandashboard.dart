@@ -10,6 +10,11 @@ import 'appointments_screen.dart'; // Pantalla para citas agendadas
 import 'digital_prescriptions_screen.dart'; // Pantalla para recetas digitales
 
 class VeterinarianDashboard extends StatelessWidget {
+  final Map<DateTime, List<String>> appointments; // Mapa de citas
+
+  // Constructor que recibe el mapa de citas
+  VeterinarianDashboard({required this.appointments});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +52,7 @@ class VeterinarianDashboard extends StatelessWidget {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               children: [
-                _buildVetOption(context, Icons.calendar_today, "Citas", AppointmentsScreen()),
+                _buildVetOption(context, Icons.calendar_today, "Citas", AppointmentsScreen(appointments: appointments)), // Pasar citas a AppointmentsScreen
                 _buildVetOption(context, Icons.history, "Historial", HistorialScreen()),
                 _buildVetOption(context, Icons.medical_services, "Recetas", DigitalPrescriptionsScreen()),
                 _buildVetOption(context, Icons.health_and_safety, "Salud", SaludScreen()),

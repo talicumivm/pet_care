@@ -15,6 +15,13 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  // Crear un mapa de citas vacío o de prueba para `appointments`
+  final Map<DateTime, List<String>> appointments = {
+    DateTime.now(): ['Cita de prueba'],
+    
+  };
+  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,20 +29,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/login', // Ruta inicial es la de inicio de sesión
+      initialRoute: '/login',
       routes: {
         '/login': (context) => LoginPage(),
         '/register': (context) => RegisterPage(),
         '/userSelection': (context) => UserSelectionPage(),
         '/owner': (context) => OwnerDashboard(),
-        '/veterinarian': (context) => VeterinarianDashboard(),
+        '/veterinarian': (context) => VeterinarianDashboard(appointments: appointments), // Pasar el mapa de citas aquí
         '/walker': (context) => WalkerDashboard(),
         '/caretaker': (context) => CaretakerDashboard(),
         '/trainer': (context) => TrainerDashboard(),
         '/admin': (context) => AdminDashboard(),
         '/map': (context) => MapScreen(),
-        
-
       },
     );
   }

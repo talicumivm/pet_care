@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class AppointmentsScreen extends StatefulWidget {
+  final Map<DateTime, List<String>> appointments; // Mapa de citas recibido como parámetro
+
+  AppointmentsScreen({required this.appointments});
+
   @override
   _AppointmentsScreenState createState() => _AppointmentsScreenState();
 }
@@ -10,10 +14,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  final List<DateTime> _appointments = []; // Lista de citas agendadas
 
   @override
   Widget build(BuildContext context) {
+    // Colocar el print aquí para verificar el contenido de appointments
+    print("Mapa de citas (appointments): ${widget.appointments}");
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Citas Agendadas"),
@@ -31,7 +37,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
               });
-              _showAppointmentsForDay(selectedDay);
             },
             calendarFormat: _calendarFormat,
             onFormatChanged: (format) {
@@ -40,28 +45,34 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               });
             },
             eventLoader: (day) {
-              return _appointments.where((appointment) => isSameDay(day, appointment)).toList();
+              return widget.appointments[day] ?? [];
             },
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _appointments.length,
-              itemBuilder: (context, index) {
-                final appointment = _appointments[index];
-                return ListTile(
-                  title: Text('Cita: ${appointment.toLocal()}'),
-                  // Agregar detalles de la cita aquí
-                );
-              },
-            ),
+            child: _buildAppointmentList(),
           ),
         ],
       ),
     );
   }
 
-  void _showAppointmentsForDay(DateTime day) {
-    // Lógica para mostrar citas del día seleccionado
-    print("Mostrando citas para el día: $day");
+  Widget _buildAppointmentList() {
+    final appointmentsForSelectedDay = widget.appointments[_selectedDay] ?? [];
+
+    if (appointmentsForSelectedDay.isEmpty) {
+      return Center(
+        child: Text('No hay citas para este día'),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: appointmentsForSelectedDay.length,
+      itemBuilder: (context, index) {
+        final appointment = appointmentsForSelectedDay[index];
+        return ListTile(
+          title: Text(appointment),
+        );
+      },
+    );
   }
 }
