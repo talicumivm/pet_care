@@ -71,6 +71,11 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             SizedBox(height: 24),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green[600],
+                foregroundColor: Colors.white, 
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+              ),
               onPressed: _register,
               child: Text('Registrarse'),
             ),

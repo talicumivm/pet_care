@@ -24,45 +24,35 @@ class _CalendarPageState extends State<CalendarPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        backgroundColor: widget.color,  // Personalización del color de la barra
+        backgroundColor: widget.color,  
       ),
       body: Column(
         children: [
           TableCalendar(
-            firstDay: DateTime.utc(2023, 1, 1),
-            lastDay: DateTime.utc(2025, 12, 31),
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
             focusedDay: _focusedDay,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);  // Comprueba si el día seleccionado es el mismo
-            },
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
-                _selectedDay = selectedDay;  // Actualiza el día seleccionado
-                _focusedDay = focusedDay;    // Cambia el día focalizado
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
               });
-
-              // Navegar a BookingDetailsPage cuando se selecciona un día
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BookingDetailsPage(selectedDay: selectedDay),
-                ),
-              );
+              _showAppointmentsForDay(selectedDay);
             },
             calendarFormat: _calendarFormat,
             onFormatChanged: (format) {
               setState(() {
-                _calendarFormat = format;  // Cambia el formato del calendario (mes, semana, etc.)
+                _calendarFormat = format;
               });
             },
             eventLoader: (day) {
-              // Cargar las citas del día seleccionado
               return widget.appointments[day] ?? [];
             },
           ),
           const SizedBox(height: 8.0),
           Expanded(
-            child: _buildAppointmentList(),  // Mostrar la lista de citas
+            child: _buildAppointmentList(),
           ),
         ],
       ),
@@ -71,14 +61,15 @@ class _CalendarPageState extends State<CalendarPage> {
 
   // Función para construir la lista de citas para el día seleccionado
   Widget _buildAppointmentList() {
-    if (_selectedDay == null || widget.appointments[_selectedDay!] == null) {
+    // Obtener citas para el día seleccionado
+    final appointmentsForSelectedDay = widget.appointments[_selectedDay] ?? [];
+
+    if (appointmentsForSelectedDay.isEmpty) {
       return Center(
-        child: Text('No hay citas para este día'),  // Si no hay citas, mostrar un mensaje
+        child: Text('No hay citas para este día'),
       );
     }
 
-    // Mostrar la lista de citas para el día seleccionado
-    final appointmentsForSelectedDay = widget.appointments[_selectedDay!]!;
     return ListView.builder(
       itemCount: appointmentsForSelectedDay.length,
       itemBuilder: (context, index) {
@@ -87,7 +78,7 @@ class _CalendarPageState extends State<CalendarPage> {
           title: Text(appointment.title),
           subtitle: Text(appointment.description),
           onTap: () {
-            // Al hacer clic en una cita, abrir los detalles de la cita
+            // Al hacer clic en una cita, navegar a la página de detalles de la cita
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -98,5 +89,10 @@ class _CalendarPageState extends State<CalendarPage> {
         );
       },
     );
+  }
+
+  void _showAppointmentsForDay(DateTime day) {
+    // Aquí podrías mostrar más detalles o manejar acciones específicas para el día seleccionado
+    print("Mostrando citas para el día: $day");
   }
 }

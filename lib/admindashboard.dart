@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'report_list.dart';
 import 'petlist.dart';
 import 'user_list.dart';
-
 import 'role_management.dart'; // Importa la pantalla de gestión de roles
-
-import 'app_settings.dart'; // Importa la pantalla de configuración de la aplicación
 
 class AdminDashboard extends StatelessWidget {
   @override
@@ -20,7 +17,6 @@ class AdminDashboard extends StatelessWidget {
           SizedBox(height: 20),
 
           _buildAdminOption(context, Icons.lock, "Gestión de Roles", RoleManagement()), // Pantalla de gestión de roles
-          _buildAdminOption(context, Icons.settings, "Configuración", AppSettings()), // Pantalla de configuración
           _buildAdminOption(context, Icons.people, "Usuarios", UserList()), // Pantalla de usuarios
           _buildAdminOption(context, Icons.report, "Reportes", ReportList()), // Pantalla de reportes
         ],
