@@ -18,32 +18,32 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     print('Ejecutando initState'); 
-    _checkConnection();  // Chequea la conexión al cargar la pantalla
+    // _checkConnection();  // Chequea la conexión al cargar la pantalla
     _fetchUsers();  // Obtiene los usuarios desde el backend
   }
 
-  // Función para verificar la conexión con el servidor
-  Future<void> _checkConnection() async {
-    final url = Uri.parse('http://127.0.0.1:8000/api/users');
-    try {
-      final response = await http.get(url);
+  // // Función para verificar la conexión con el servidor
+  // Future<void> _checkConnection() async {
+  //   final url = Uri.parse('http://127.0.0.1:8000/api/users');
+  //   try {
+  //     final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          connectionMessage = data['message'];  // Muestra el mensaje de éxito
-        });
-      } else {
-        setState(() {
-          connectionMessage = "Error en la conexión: ${response.statusCode}";
-        });
-      }
-    } catch (e) {
-      setState(() {
-        connectionMessage = "Error: $e";
-      });
-    }
-  }
+  //     if (response.statusCode == 200) {
+  //       final data = jsonDecode(response.body);
+  //       setState(() {
+  //         connectionMessage = data['message'];  // Muestra el mensaje de éxito
+  //       });
+  //     } else {
+  //       setState(() {
+  //         connectionMessage = "Error en la conexión: ${response.statusCode}";
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       connectionMessage = "Error: $e";
+  //     });
+  //   }
+  // }
 
   // Función para obtener los usuarios desde la API
   Future<void> _fetchUsers() async {
@@ -130,28 +130,52 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // Función de login que valida el correo y redirige según el tipo de usuario
-  Future<void> _login() async {
-    final email = _emailController.text;
+// Función de login que valida el correo y contraseña
+Future<void> _login() async {
+  final email = _emailController.text;
+  final password = _passwordController.text;
 
-    if (email.isNotEmpty) {
-      // Verifica si existe un usuario con el correo ingresado
-      final matchingUser = _users.firstWhere(
-        (user) => user['email'] == email,
-        orElse: () => null,
+  if (email.isNotEmpty && password.isNotEmpty) {
+    // Crea el cuerpo de la solicitud
+    final Map<String, String> body = {
+      'email': email,
+      'password': password,
+    };
+
+    // Realiza la solicitud POST al backend
+    final url = Uri.parse('http://127.0.0.1:8000/api/users/login');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
       );
 
-      if (matchingUser != null) {
-        // Si el correo existe, verifica el rol del usuario y redirige
-        String role = matchingUser['role'];  // O el campo que utilices para el tipo de usuario
+      // Verifica el código de estado de la respuesta
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
 
-        print('Inicio de sesión exitoso: ${matchingUser['name']} (${matchingUser['email']})');
+        // Obtiene los datos del usuario desde la respuesta
+        final user = data['user'];
+
+        // Actualiza el estado del mensaje de conexión
+        setState(() {
+          connectionMessage = "Inicio de sesión exitoso";  // Mensaje de éxito
+        });
+
+        // Guarda los datos del usuario para uso posterior, como el nombre, tipo, etc.
+        print('Usuario logueado: ${user['name']} (${user['email']})');
 
         // Redirige según el rol del usuario
+        String role = user['tipo'];
+
         if (role == 'veterinarian') {
           Navigator.pushReplacementNamed(context, '/veterinarian');
         } else if (role == 'cuidador') {
           Navigator.pushReplacementNamed(context, '/cuidador');
-        } else if (role == 'dueño') {
+        } else if (role == 'owner') {
           Navigator.pushReplacementNamed(context, '/owner');
         } else {
           print('Rol desconocido: $role');
@@ -160,17 +184,24 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       } else {
-        // Correo no encontrado
-        print('Correo no encontrado');
+        // Si el estado no es 200, muestra el mensaje de error
+        final data = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Correo no encontrado')),
+          SnackBar(content: Text(data['message'] ?? 'Error al iniciar sesión')),
         );
       }
-    } else {
-      print('Por favor, completa el campo de correo');
+    } catch (e) {
+      // Si hay un error de conexión
+      print('Error de conexión: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, completa el campo de correo')),
+        SnackBar(content: Text('Error de conexión')),
       );
     }
+  } else {
+    // Si no se ha ingresado correo o contraseña
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Por favor, completa todos los campos')),
+    );
   }
+}
 }
