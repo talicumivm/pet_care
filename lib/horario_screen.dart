@@ -1,11 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'models/user_manager.dart';
 
 class HorarioScreen extends StatelessWidget {
   final dynamic servicio;
   final Function(String horario) onHorarioSeleccionado; // Callback para seleccionar horario
 
   HorarioScreen({required this.servicio, required this.onHorarioSeleccionado});
+
+  Future<void> _enviarCita(String horario) async {
+    try {
+      // Dividir el horario en fecha y hora
+      DateTime horarioSeleccionado = DateTime.parse(horario);
+      String fecha = DateFormat('yyyy-MM-dd').format(horarioSeleccionado);
+      String hora = DateFormat('HH:mm').format(horarioSeleccionado);
+
+      // Crear el cuerpo de la solicitud
+      Map<String, dynamic> body = {
+        "fecha": fecha,
+        "hora": hora,
+        "id_mascota": 1,
+        "id_servicio": this.servicio['id'],
+        "id_proveedor": this.servicio['id_usuario'],
+        "id_cliente": UserManager.instance.id
+      };
+
+      print("body enviado ${body}");
+
+      // Realizar la solicitud POST
+      var url = Uri.parse('http://127.0.0.1:8000/api/citas');
+      var response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      // Manejar la respuesta
+      if (response.statusCode == 200) {
+        print('Cita creada exitosamente: ${response.body}');
+      } else {
+        print('Error al crear la cita: ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      print('Error al enviar la cita: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +81,10 @@ class HorarioScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         return ListTile(
           title: Text('Horario: ${horarios[index]}'),
-          onTap: () {
+          onTap: () async {
+            print('Horario seleccionado: ${horarios[index]} y ${this.servicio['id']}');
+            // Enviar la cita al servidor
+            await _enviarCita(horarios[index]);
             // Llamar al callback cuando se selecciona un horario
             onHorarioSeleccionado(horarios[index]);
             Navigator.pop(context); // Volver a la pantalla anterior
