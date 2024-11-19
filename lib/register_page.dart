@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'models/user_manager.dart';
+
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -98,7 +100,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (email.isNotEmpty && password.isNotEmpty && _selectedRole != null) {
       // Aquí puedes agregar la lógica de registro, por ejemplo, enviar datos a un servidor
-
+      UserManager.instance.setUser(email, _selectedRole!);
       // Redirige a la pantalla correspondiente basada en el rol seleccionado
       Navigator.pushNamed(context, '/${_selectedRole}');
     } else {

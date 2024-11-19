@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'models/user_manager.dart';
+
 
 class AppointmentsScreen extends StatefulWidget {
   final Map<DateTime, List<String>> appointments; // Mapa de citas recibido como parámetro
@@ -19,6 +21,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   Widget build(BuildContext context) {
     // Colocar el print aquí para verificar el contenido de appointments
     print("Mapa de citas (appointments): ${widget.appointments}");
+    final userManager = UserManager.instance;
+    final userEmail = userManager.email ?? 'Correo no disponible';
+    final userRole = userManager.role ?? 'Rol no disponible';
 
     return Scaffold(
       appBar: AppBar(
