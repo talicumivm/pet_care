@@ -7,6 +7,7 @@ import 'cuidador_list.dart';
 import 'package:http/http.dart' as http;
 import 'horario_screen.dart';
 import 'appointments_screen.dart'; // Pantalla de citas agendadas
+import 'models/user_manager.dart';
 
 class OwnerDashboard extends StatefulWidget {
   @override
@@ -62,7 +63,8 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Dueño de Mascotas"),
+        title: Text("Dueño de Mascotas: ${UserManager.instance.name != null ? UserManager.instance.name : 'no logeado'}"),
+
         backgroundColor: Colors.lightGreen,
       ),
       body: ListView(
