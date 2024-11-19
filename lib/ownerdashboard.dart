@@ -23,7 +23,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   void initState() {
     super.initState();
     _fetchServicios();
-    _fetchEventos();
+    // _fetchEventos();
     _events = {
       DateTime.now().add(Duration(days: 1)): ['Cita con el Dr. Juan Pérez a las 10:00 AM'],
       DateTime.now().add(Duration(days: 2)): ['Entrenamiento con Pedro a las 14:00 PM'],
@@ -55,62 +55,6 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
       }
     } catch (e) {
       print('Error de conexión: $e');
-    }
-  }
-
-  Future<void> _crearCita(dynamic servicio, String horario) async {
-    final url = Uri.parse('http://127.0.0.1:8000/api/citas');
-    try {
-      final date = horario.split(" ")[0];
-      final time = horario.split(" ")[1];
-
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'fecha': date,
-          'hora': time,
-          'id_mascota': 1,         // Cambiar al id real de la mascota
-          'id_servicio': servicio['id'],   // ID del servicio seleccionado
-          'id_proveedor': 1,        // Cambiar al id real del proveedor
-          'id_cliente': 1           // Cambiar al id real del cliente
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print("Cita creada exitosamente.");
-        _fetchEventos(); // Actualizar el calendario con las nuevas citas
-      } else {
-        print("Error al crear la cita: ${response.body}");
-      }
-    } catch (e) {
-      print("Error de conexión: $e");
-    }
-  }
-
-  Future<void> _fetchEventos() async {
-    final url = Uri.parse('http://127.0.0.1:8000/api/citas');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> citas = jsonDecode(response.body)["citas"];
-        setState(() {
-          _events.clear();
-          for (var cita in citas) {
-            DateTime fecha = DateTime.parse(cita['fecha']);
-            String detalle = "${cita['hora']} - Servicio: ${cita['id_servicio']}";
-
-            if (_events[fecha] == null) {
-              _events[fecha] = [];
-            }
-            _events[fecha]!.add(detalle);
-          }
-        });
-      } else {
-        print("Error al obtener las citas: ${response.body}");
-      }
-    } catch (e) {
-      print("Error de conexión: $e");
     }
   }
 
@@ -155,14 +99,6 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           SizedBox(height: 10),
           _buildServicesList(),
           SizedBox(height: 30),
-          Text("Calendario", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          Container(
-            height: 400,
-            child: _buildCalendar(),
-          ),
-          SizedBox(height: 20),
-          Text("Detalles de la cita", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          Text(_specialistDetails, style: TextStyle(fontSize: 16)),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -204,7 +140,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
                     builder: (context) => HorarioScreen(
                       servicio: servicio,
                       onHorarioSeleccionado: (horario) {
-                        _crearCita(servicio, horario);
+                        // _crearCita(servicio, horario);
                       },
                     ),
                   ),
@@ -218,23 +154,6 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     );
   }
 
-  Widget _buildCalendar() {
-    return TableCalendar(
-      firstDay: DateTime.utc(2020, 1, 1),
-      lastDay: DateTime.utc(2030, 12, 31),
-      focusedDay: _selectedDate,
-      selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
-      onDaySelected: (selectedDay, focusedDay) {
-        setState(() {
-          _selectedDate = selectedDay;
-          _specialistDetails = _events[_selectedDate]?.join('\n') ?? 'No hay citas para esta fecha';
-        });
-      },
-      eventLoader: (day) {
-        return _events[day] ?? [];
-      },
-    );
-  }
 
   Future<void> _addNewAppointment() async {
     final result = await showDialog<Map<String, dynamic>>(
