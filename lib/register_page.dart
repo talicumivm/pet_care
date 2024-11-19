@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'models/user_manager.dart';
-
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -8,10 +9,12 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscureText = true;
   String? _selectedRole;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +27,14 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Nombre ',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 16),
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
@@ -72,15 +83,17 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[600],
-                foregroundColor: Colors.white, 
-                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-              ),
-              onPressed: _register,
-              child: Text('Registrarse'),
-            ),
+            _isLoading
+                ? CircularProgressIndicator()
+                : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                    ),
+                    onPressed: _register,
+                    child: Text('Registrarse'),
+                  ),
             SizedBox(height: 16),
             TextButton(
               onPressed: () {
@@ -94,15 +107,59 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  void _register() {
+  void _register() async {
+    final name = _nameController.text;
     final email = _emailController.text;
     final password = _passwordController.text;
 
-    if (email.isNotEmpty && password.isNotEmpty && _selectedRole != null) {
-      // Aquí puedes agregar la lógica de registro, por ejemplo, enviar datos a un servidor
-      UserManager.instance.setUser(email, _selectedRole!);
-      // Redirige a la pantalla correspondiente basada en el rol seleccionado
-      Navigator.pushNamed(context, '/${_selectedRole}');
+    if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty && _selectedRole != null) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final response = await http.post(
+          Uri.parse('http://127.0.0.1:8000/api/users'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'name': name,
+            'email': email,
+            'password': password,
+            'tipo': _selectedRole,
+          }),
+        );
+
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final responseData = jsonDecode(response.body);
+
+          // Actualiza el estado del usuario en UserManager
+          UserManager.instance.setUser(email, _selectedRole!);
+
+          // Muestra un mensaje de éxito
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Registro exitoso: ${responseData['message']}')),
+          );
+
+          // Redirige a la pantalla correspondiente
+          Navigator.pushNamed(context, '/${_selectedRole}');
+        } else {
+          final errorData = jsonDecode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${errorData}')),
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al registrar: $e')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Por favor, completa todos los campos y selecciona un rol')),
