@@ -10,7 +10,7 @@ class HorarioScreen extends StatelessWidget {
 
   HorarioScreen({required this.servicio, required this.onHorarioSeleccionado});
 
-  Future<void> _enviarCita(String horario) async {
+  Future<void> _enviarCita(BuildContext context, String horario) async {
     try {
       // Dividir el horario en fecha y hora
       DateTime horarioSeleccionado = DateTime.parse(horario);
@@ -40,11 +40,29 @@ class HorarioScreen extends StatelessWidget {
       // Manejar la respuesta
       if (response.statusCode == 200) {
         print('Cita creada exitosamente: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cita creada exitosamente.'),
+            backgroundColor: Colors.green,
+          ),
+        );
       } else {
         print('Error al crear la cita: ${response.statusCode} ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al crear la cita: ${response.statusCode}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       print('Error al enviar la cita: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al enviar la cita. Intenta de nuevo.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -84,7 +102,7 @@ class HorarioScreen extends StatelessWidget {
           onTap: () async {
             print('Horario seleccionado: ${horarios[index]} y ${this.servicio['id']}');
             // Enviar la cita al servidor
-            await _enviarCita(horarios[index]);
+            await _enviarCita(context, horarios[index]);
             // Llamar al callback cuando se selecciona un horario
             onHorarioSeleccionado(horarios[index]);
             Navigator.pop(context); // Volver a la pantalla anterior
