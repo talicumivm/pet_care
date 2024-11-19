@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'models/user_manager.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -18,56 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     print('Ejecutando initState'); 
-    // _checkConnection();  // Chequea la conexión al cargar la pantalla
-    _fetchUsers();  // Obtiene los usuarios desde el backend
   }
-
-  // // Función para verificar la conexión con el servidor
-  // Future<void> _checkConnection() async {
-  //   final url = Uri.parse('http://127.0.0.1:8000/api/users');
-  //   try {
-  //     final response = await http.get(url);
-
-  //     if (response.statusCode == 200) {
-  //       final data = jsonDecode(response.body);
-  //       setState(() {
-  //         connectionMessage = data['message'];  // Muestra el mensaje de éxito
-  //       });
-  //     } else {
-  //       setState(() {
-  //         connectionMessage = "Error en la conexión: ${response.statusCode}";
-  //       });
-  //     }
-  //   } catch (e) {
-  //     setState(() {
-  //       connectionMessage = "Error: $e";
-  //     });
-  //   }
-  // }
-
-  // Función para obtener los usuarios desde la API
-  Future<void> _fetchUsers() async {
-    final url = Uri.parse('http://127.0.0.1:8000/api/users');
-    try {
-      final response = await http.get(url);
-      
-      print('Response status code: ${response.statusCode}');  // Verifica el código de estado
-      print('Response body: ${response.body}');  // Muestra el cuerpo de la respuesta
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _users = data['users'];  // Almacenar la lista de usuarios
-        });
-        print('Usuarios obtenidos: $_users');  // Imprime la lista de usuarios
-      } else {
-        print('Error al obtener los usuarios: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error de conexión: $e');
-    }
-  }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +117,12 @@ Future<void> _login() async {
           connectionMessage = "Inicio de sesión exitoso";  // Mensaje de éxito
         });
 
-        // Guarda los datos del usuario para uso posterior, como el nombre, tipo, etc.
+        // Guarda los datos del usuario en UserManager
+        UserManager.instance.setUser(user['id'], user['email'], user['tipo'], user['name']);
+        print('User ID: ${UserManager.instance.id}');
+        print('User Name: ${UserManager.instance.name}');
+        print('User Role: ${UserManager.instance.role}');
+        print('User Role: ${UserManager.instance.email}');
         print('Usuario logueado: ${user['name']} (${user['email']})');
 
         // Redirige según el rol del usuario

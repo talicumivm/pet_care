@@ -107,63 +107,68 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  void _register() async {
-    final name = _nameController.text;
-    final email = _emailController.text;
-    final password = _passwordController.text;
+void _register() async {
+  final name = _nameController.text;
+  final email = _emailController.text;
+  final password = _passwordController.text;
 
-    if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty && _selectedRole != null) {
+  if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty && _selectedRole != null) {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/users'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'tipo': _selectedRole,
+        }),
+      );
+
       setState(() {
-        _isLoading = true;
+        _isLoading = false;
       });
 
-      try {
-        final response = await http.post(
-          Uri.parse('http://127.0.0.1:8000/api/users'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'name': name,
-            'email': email,
-            'password': password,
-            'tipo': _selectedRole,
-          }),
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        final user = responseData['user'];
+
+
+        UserManager.instance.setUser(user['id'], user['email'], user['tipo'], user['name']);
+        
+        print('User ID: ${UserManager.instance.id}');
+        print('User Name: ${UserManager.instance.name}');
+        print('User Role: ${UserManager.instance.role}');
+        print('User Role: ${UserManager.instance.email}');
+        // Muestra un mensaje de éxito
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registro exitoso: ${responseData['message']}')),
         );
 
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          final responseData = jsonDecode(response.body);
-
-          // Actualiza el estado del usuario en UserManager
-          UserManager.instance.setUser(email, _selectedRole!);
-
-          // Muestra un mensaje de éxito
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registro exitoso: ${responseData['message']}')),
-          );
-
-          // Redirige a la pantalla correspondiente
-          Navigator.pushNamed(context, '/${_selectedRole}');
-        } else {
-          final errorData = jsonDecode(response.body);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${errorData}')),
-          );
-        }
-      } catch (e) {
-        setState(() {
-          _isLoading = false;
-        });
+        // Redirige a la pantalla correspondiente según el rol
+        Navigator.pushNamed(context, '/${_selectedRole}');
+      } else {
+        final errorData = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al registrar: $e')),
+          SnackBar(content: Text('Error: ${errorData}')),
         );
       }
-    } else {
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, completa todos los campos y selecciona un rol')),
+        SnackBar(content: Text('Error al registrar: $e')),
       );
     }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Por favor, completa todos los campos y selecciona un rol')),
+    );
   }
+}
 }
