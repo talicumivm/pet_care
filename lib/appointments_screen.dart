@@ -5,9 +5,9 @@ import 'models/user_manager.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class AppointmentsScreen extends StatefulWidget {
-  final Map<DateTime, List<String>> appointments; // Mapa de citas recibido como parámetro
+  // final Map<DateTime, List<String>> appointments; // Mapa de citas recibido como parámetro
 
-  AppointmentsScreen({required this.appointments});
+  // AppointmentsScreen();
 
   @override
   _AppointmentsScreenState createState() => _AppointmentsScreenState();

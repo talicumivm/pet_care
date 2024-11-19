@@ -88,7 +88,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AppointmentsScreen(appointments: _events), // Pasar citas a AppointmentsScreen
+                  builder: (context) => AppointmentsScreen(), // Pasar citas a AppointmentsScreen
                 ),
               );
             },
