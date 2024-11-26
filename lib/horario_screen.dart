@@ -6,18 +6,66 @@ import 'models/user_manager.dart';
 
 class HorarioScreen extends StatelessWidget {
   final dynamic servicio;
-  final Function(String horario) onHorarioSeleccionado; // Callback para seleccionar horario
+  final Function(String horario) onHorarioSeleccionado;
 
   HorarioScreen({required this.servicio, required this.onHorarioSeleccionado});
 
+  Future<List<String>> _fetchCitasOcupadas(int idProveedor) async {
+    try {
+      var url = Uri.parse('http://127.0.0.1:8000/api/citas/$idProveedor/provider');
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        List<dynamic> citas = data["citas encontradas"];
+        return citas.map((cita) {
+          return "${cita['fecha']} ${cita['hora'].substring(0, 5)}";
+        }).toList();
+      } else {
+        print("Error al obtener citas: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      print("Error al realizar la petición: $e");
+      return [];
+    }
+
+
+  
+  }
+
+Future<List<String>> _getHorariosDisponibles(int idProveedor) async {
+  List<String> horariosDisponibles = [];
+  List<String> citasOcupadas = await _fetchCitasOcupadas(idProveedor);
+
+  // Generar horarios para las próximas dos semanas
+  DateTime now = DateTime.now();
+  DateTime end = now.add(Duration(days: 14));
+
+  for (DateTime day = now; day.isBefore(end); day = day.add(Duration(days: 1))) {
+    DateTime startTime = DateTime(day.year, day.month, day.day, 10, 0);
+    DateTime endTime = DateTime(day.year, day.month, day.day, 18, 0);
+
+    for (DateTime time = startTime; time.isBefore(endTime); time = time.add(Duration(minutes: 30))) {
+      String formattedTime = DateFormat('yyyy-MM-dd HH:mm').format(time);
+      if (citasOcupadas.contains(formattedTime)) {
+        // Imprimir los horarios que se están omitiendo
+        print('Horario omitido porque ya está ocupado: $formattedTime');
+      } else {
+        horariosDisponibles.add(formattedTime);
+      }
+    }
+  }
+
+  return horariosDisponibles;
+}
+
   Future<void> _enviarCita(BuildContext context, String horario) async {
     try {
-      // Dividir el horario en fecha y hora
       DateTime horarioSeleccionado = DateTime.parse(horario);
       String fecha = DateFormat('yyyy-MM-dd').format(horarioSeleccionado);
       String hora = DateFormat('HH:mm').format(horarioSeleccionado);
 
-      // Crear el cuerpo de la solicitud
       Map<String, dynamic> body = {
         "fecha": fecha,
         "hora": hora,
@@ -27,9 +75,6 @@ class HorarioScreen extends StatelessWidget {
         "id_cliente": UserManager.instance.id
       };
 
-      print("body enviado ${body}");
-
-      // Realizar la solicitud POST
       var url = Uri.parse('http://127.0.0.1:8000/api/citas');
       var response = await http.post(
         url,
@@ -37,9 +82,7 @@ class HorarioScreen extends StatelessWidget {
         body: jsonEncode(body),
       );
 
-      // Manejar la respuesta
       if (response.statusCode == 200) {
-        print('Cita creada exitosamente: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Cita creada exitosamente.'),
@@ -47,7 +90,6 @@ class HorarioScreen extends StatelessWidget {
           ),
         );
       } else {
-        print('Error al crear la cita: ${response.statusCode} ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al crear la cita: ${response.statusCode}'),
@@ -56,7 +98,6 @@ class HorarioScreen extends StatelessWidget {
         );
       }
     } catch (e) {
-      print('Error al enviar la cita: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al enviar la cita. Intenta de nuevo.'),
@@ -72,43 +113,33 @@ class HorarioScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Reservar ${servicio['tipo_de_servicio']}'),
       ),
-      body: _buildHorarioList(context),
-    );
-  }
-
-  Widget _buildHorarioList(BuildContext context) {
-    // Generar horarios para las próximas dos semanas
-    List<String> horarios = [];
-    DateTime now = DateTime.now();
-    DateTime end = now.add(Duration(days: 14));
-
-    // Iterar desde las 10:00 AM hasta las 6:00 PM para cada día
-    for (DateTime day = now; day.isBefore(end); day = day.add(Duration(days: 1))) {
-      DateTime startTime = DateTime(day.year, day.month, day.day, 10, 0);
-      DateTime endTime = DateTime(day.year, day.month, day.day, 18, 0);
-
-      for (DateTime time = startTime; time.isBefore(endTime); time = time.add(Duration(minutes: 30))) {
-        // Formatear el horario para mostrarlo de forma legible
-        String formattedTime = DateFormat('yyyy-MM-dd HH:mm').format(time);
-        horarios.add(formattedTime);
-      }
-    }
-
-    return ListView.builder(
-      itemCount: horarios.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text('Horario: ${horarios[index]}'),
-          onTap: () async {
-            print('Horario seleccionado: ${horarios[index]} y ${this.servicio['id']}');
-            // Enviar la cita al servidor
-            await _enviarCita(context, horarios[index]);
-            // Llamar al callback cuando se selecciona un horario
-            onHorarioSeleccionado(horarios[index]);
-            Navigator.pop(context); // Volver a la pantalla anterior
-          },
-        );
-      },
+      body: FutureBuilder<List<String>>(
+        future: _getHorariosDisponibles(servicio['id_usuario']),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error al cargar horarios.'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No hay horarios disponibles.'));
+          } else {
+            List<String> horarios = snapshot.data!;
+            return ListView.builder(
+              itemCount: horarios.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text('Horario: ${horarios[index]}'),
+                  onTap: () async {
+                    await _enviarCita(context, horarios[index]);
+                    onHorarioSeleccionado(horarios[index]);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            );
+          }
+        },
+      ),
     );
   }
 }

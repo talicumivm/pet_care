@@ -14,6 +14,8 @@ class OwnerDashboard extends StatefulWidget {
   _OwnerDashboardState createState() => _OwnerDashboardState();
 }
 
+
+
 class _OwnerDashboardState extends State<OwnerDashboard> {
   DateTime _selectedDate = DateTime.now();
   String _specialistDetails = '';
@@ -175,55 +177,118 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     }
   }
 
-  void _showAddPetDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Agregar Mascota"),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  decoration: InputDecoration(labelText: "Nombre"),
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: "Raza"),
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: "Peso (kg)"),
-                  keyboardType: TextInputType.number,
-                ),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: "Tipo de animal"),
-                  items: <String>['Perro', 'Gato', 'Pájaro'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (_) {},
-                ),
-              ],
-            ),
+void _showAddPetDialog() {
+  // Controladores para capturar los datos del formulario
+  final TextEditingController nombreController = TextEditingController();
+  final TextEditingController razaController = TextEditingController();
+  final TextEditingController pesoController = TextEditingController();
+  final TextEditingController edadController = TextEditingController();
+  String? especieSeleccionada;
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Agregar Mascota"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nombreController,
+                decoration: InputDecoration(labelText: "Nombre"),
+              ),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: "Especie"),
+                items: <String>['Perro', 'Gato', 'Pájaro'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  especieSeleccionada = value;
+                },
+              ),
+              TextField(
+                controller: razaController,
+                decoration: InputDecoration(labelText: "Raza"),
+              ),
+              TextField(
+                controller: pesoController,
+                decoration: InputDecoration(labelText: "Peso (kg)"),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: edadController,
+                decoration: InputDecoration(labelText: "Edad"),
+                keyboardType: TextInputType.number,
+              ),
+            ],
           ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("Guardar"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("Cancelar"),
-            ),
-          ],
-        );
-      },
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () async {
+              // Crear el objeto mascota
+              Map<String, dynamic> nuevaMascota = {
+                "nombre": nombreController.text,
+                "especie": especieSeleccionada,
+                "raza": razaController.text,
+                "peso": pesoController.text,
+                "edad": int.tryParse(edadController.text) ?? 0,
+                "id_usuario": UserManager.instance.id, // Reemplaza con el ID del usuario logueado
+              };
+
+              // Enviar la solicitud POST
+              await _crearMascota(nuevaMascota);
+
+              Navigator.pop(context); // Cerrar el diálogo
+            },
+            child: Text("Guardar"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Cerrar el diálogo sin guardar
+            },
+            child: Text("Cancelar"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+// Método para enviar la solicitud POST
+Future<void> _crearMascota(Map<String, dynamic> mascota) async {
+  final url = Uri.parse('http://127.0.0.1:8000/api/mascotas');
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(mascota),
     );
+
+    if (response.statusCode == 201) {
+      print('Mascota creada exitosamente: ${response.body}');
+      // Mostrar un mensaje de éxito o actualizar la lista de mascotas
+    } else {
+      print('Error al crear la mascota: ${response.statusCode}');
+      print('Respuesta del servidor: ${response.body}');
+    }
+  } catch (e) {
+    print('Error de conexión: $e');
   }
+}
+Future<List<dynamic>> fetchMascotas() async {
+  final url = Uri.parse('http://127.0.0.1:8000/api/mascotas');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return data['mascotitas'];
+  } else {
+    throw Exception('Error al obtener las mascotas');
+  }
+}
 }
