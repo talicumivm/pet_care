@@ -20,6 +20,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   DateTime _selectedDate = DateTime.now();
   String _specialistDetails = '';
   late Map<DateTime, List<String>> _events;
+  List<dynamic> _mascotas = [];  
   List<dynamic> _servicios = [];  // Lista de servicios obtenidos de la API
 
   @override
@@ -27,10 +28,39 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     super.initState();
     _fetchServicios();
     // _fetchEventos();
+     _fetchMascotas();
     _events = {
       DateTime.now().add(Duration(days: 1)): ['Cita con el Dr. Juan Pérez a las 10:00 AM'],
       DateTime.now().add(Duration(days: 2)): ['Entrenamiento con Pedro a las 14:00 PM'],
     };
+  }
+
+    // Función para obtener las mascotas desde la API
+  Future<void> _fetchMascotas() async {
+    final url = Uri.parse('http://127.0.0.1:8000/api/mascotas');
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        print('Respuesta completa de las mascotas: $json');
+
+        if (json.containsKey('mascotitas') && json['mascotitas'] is List) {
+          final List<dynamic> data = json['mascotitas'];
+          print('Mascotas obtenidas: $data');
+
+          setState(() {
+            _mascotas = data;
+          });
+        } else {
+          print('La respuesta de la API no contiene una lista de mascotas válida.');
+        }
+      } else {
+        print('Error al obtener las mascotas: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error de conexión: $e');
+    }
   }
 
   // Función para obtener los servicios desde la API
@@ -103,6 +133,11 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
           SizedBox(height: 10),
           _buildServicesList(),
           SizedBox(height: 30),
+                    // Mostrar las mascotas obtenidas
+          Text("Mis Mascotas", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          SizedBox(height: 10),
+          _buildMascotasList(),  // Aquí mostramos las mascotas obtenidas
+        
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -291,4 +326,24 @@ Future<List<dynamic>> fetchMascotas() async {
     throw Exception('Error al obtener las mascotas');
   }
 }
+
+  // Widget para mostrar las mascotas obtenidas de la API
+  Widget _buildMascotasList() {
+    if (_mascotas.isEmpty) {
+      return Center(child: Text("Cargando mascotas..."));
+    }
+
+    return Column(
+      children: _mascotas.map((mascota) {
+        return Card(
+          margin: EdgeInsets.symmetric(vertical: 10),
+          child: ListTile(
+            leading: Icon(Icons.pets, size: 40, color: Colors.lightGreen),
+            title: Text(mascota['nombre'], style: TextStyle(fontSize: 20)),
+            subtitle: Text("Especie: ${mascota['especie']}\nRaza: ${mascota['raza']}"),
+          ),
+        );
+      }).toList(),
+    );
+  }
 }
